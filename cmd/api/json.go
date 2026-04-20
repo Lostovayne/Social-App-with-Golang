@@ -3,7 +3,17 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/go-playground/validator/v10"
 )
+
+
+var Validate *validator.Validate
+
+func init() {
+	Validate = validator.New(validator.WithRequiredStructEnabled())
+}
+
 
 // writeJson se encarga de escribir la respuesta en formato JSON. Recibe el status code y los datos a enviar, establece el header Content-Type a application/json, escribe el status code y codifica los datos en JSON para enviarlos al cliente.
 func writeJson(w http.ResponseWriter, status int, data any) error {
