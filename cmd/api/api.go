@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/fatih/color"
-	// External Imports
 	"github.com/Elevate-Techworks/social/internal/store"
+	"github.com/fatih/color"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
