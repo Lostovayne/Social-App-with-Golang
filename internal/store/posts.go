@@ -8,16 +8,15 @@ import (
 	"github.com/lib/pq"
 )
 
-// Models
-
 type Post struct {
-	ID        int64    `json:"id"`
-	Content   string   `json:"content"`
-	Title     string   `json:"title"`
-	UserId    int64    `json:"user_id"`
-	Tags      []string `json:"tags"`
-	CreatedAt string   `json:"created_at"`
-	UpdatedAt string   `json:"updated_at"`
+	ID        int64     `json:"id"`
+	Content   string    `json:"content"`
+	Title     string    `json:"title"`
+	UserId    int64     `json:"user_id"`
+	Tags      []string  `json:"tags"`
+	CreatedAt string    `json:"created_at"`
+	UpdatedAt string    `json:"updated_at"`
+	Comments  []Comment `json:"comments"`
 }
 
 type PostsStorage struct {
@@ -59,9 +58,9 @@ func (s *PostsStorage) GetByID(ctx context.Context, id int64) (*Post, error) {
 		&post.Content,
 		&post.Title,
 		&post.UserId,
+		pq.Array(&post.Tags),
 		&post.CreatedAt,
 		&post.UpdatedAt,
-		pq.Array(&post.Tags),
 	)
 	if err != nil {
 		switch {

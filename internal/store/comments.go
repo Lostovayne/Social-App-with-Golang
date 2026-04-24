@@ -11,13 +11,42 @@ type Comment struct {
 	UserID    int64  `json:"user_id"`
 	Content   string `json:"content"`
 	CreatedAt string `json:"created_at"`
+	User      User   `json:"user"`
 }
 
-type CommentsStore struct {
+type CommentStore struct {
 	db *sql.DB
 }
 
-func (s *CommentsStore) GetByPostID(ctx context.Context, postID int64) (*Post, error) {
-	query := ``
-	return nil, nil
+func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment, error) {
+
+	query := `SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, users.username, users.id, users.email FROM comments c JOIN users on users.id = c.user_id WHERE c.post_id = $1 ORDER BY c.created_at DESC`
+
+	rows, err := s.db.QueryContext(ctx, query, postID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	comments := []Comment{}
+	for rows.Next() {
+		var c Comment
+		c.User = User{}
+		err := rows.Scan(&c.ID,
+			&c.PostID,
+			&c.UserID,
+			&c.Content,
+			&c.CreatedAt,
+			&c.User.Username,
+			&c.User.ID,
+			&c.User.Email)
+
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, c)
+	}
+
+	return comments, nil
 }
