@@ -84,3 +84,6 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
+}

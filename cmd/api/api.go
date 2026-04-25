@@ -111,6 +111,7 @@ func (app *application) mount() *chi.Mux {
 
 			r.Route("/{postID}", func(r chi.Router) {
 				r.Get("/", app.getPostHandler)
+				r.Delete("/",app.deletePostHandler)
 			})
 		})
 	})
