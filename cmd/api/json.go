@@ -27,7 +27,6 @@ func readJson(w http.ResponseWriter, r *http.Request, data any) error {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	return decoder.Decode(data)
-
 }
 
 func writeJsonError(w http.ResponseWriter, status int, message string) error {
