@@ -122,7 +122,7 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := app.store.Posts.Update(r.Context(), post); err != nil {
-		app.internalServerError(w, r, err)
+		app.notFoundResponse(w, r, err)
 		return
 	}
 

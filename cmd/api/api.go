@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -75,6 +76,15 @@ func coloredLoggerMiddleware(next http.Handler) http.Handler {
 		paddedMethod := fmt.Sprintf("%-6s", r.Method)
 		paddedLatency := fmt.Sprintf("%-10s", latency.String())
 
+		ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			ip = r.RemoteAddr
+		}
+
+		if ip == "::1" || ip == "127.0.0.1" {
+			ip = "localhost"
+		}
+
 		fmt.Printf("%s %s %s %s %s %s %s %s %s %s\n",
 			dim(timeStr),
 			dim("│"),
@@ -85,7 +95,7 @@ func coloredLoggerMiddleware(next http.Handler) http.Handler {
 			magenta(paddedLatency),
 			dim("│"),
 			white(r.URL.Path),
-			dim(fmt.Sprintf("(%s)", r.RemoteAddr)),
+			dim(fmt.Sprintf("(%s)", ip)),
 		)
 	})
 }
