@@ -99,6 +99,10 @@ db-logs:
 			exit 1; \
 		fi
 
+# [DB] Ejecuta el seed de la base de datos
+db-seed:
+		go run ./cmd/seed
+
 # [Migraciones] Aplica migraciones
 migrate-up:
 		@if ! command -v migrate >/dev/null 2>&1; then \
