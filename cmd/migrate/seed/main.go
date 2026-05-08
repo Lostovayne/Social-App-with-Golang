@@ -8,18 +8,16 @@ import (
 	"github.com/Elevate-Techworks/social/internal/store"
 )
 
-
-
 func main() {
-   addr := env.GetString("DB_ADDR", "postgres://admin:adminpassword@localhost:5432/social?sslmode=disable")
+	addr := env.GetString("DB_ADDR", "postgres://admin:adminpassword@localhost:5432/social?sslmode=disable")
 
-   conn, err := db.New(addr,3,3,"15m")
-   if err != nil {
-   log.Fatal(err)
-   }
+	conn, err := db.New(addr, 3, 3, "15m")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-   defer conn.Close()
+	defer conn.Close()
 
-   store := store.NewStorage(conn)
-   db.Seed(store)
+	store := store.NewStorage(conn)
+	db.Seed(store)
 }

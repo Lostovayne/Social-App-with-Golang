@@ -39,3 +39,8 @@ func (s *UserStorage) Create(ctx context.Context, user *User) error {
 	return nil
 
 }
+
+
+func (s *UserStorage) GetByID(ctx context.Context, id int64) (*User, error) {
+
+}
