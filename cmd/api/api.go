@@ -118,7 +118,6 @@ func (app *application) mount() *chi.Mux {
 
 		r.Route("/posts", func(r chi.Router) {
 			r.Post("/", app.createPostHandler)
-
 			r.Route("/{postID}", func(r chi.Router) {
 				r.Use(app.postsContextMiddleware)
 				r.Get("/", app.getPostHandler)
@@ -126,6 +125,13 @@ func (app *application) mount() *chi.Mux {
 				r.Patch("/", app.updatePostHandler)
 			})
 		})
+
+		r.Route("/users", func(r chi.Router) {
+			r.Route("/{userID}", func(r chi.Router) {
+				r.Get("/",app.getUserHandler)
+			})
+		})
+
 	})
 
 	return r

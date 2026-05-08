@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"log"
+	"strconv"
 
 	"github.com/Elevate-Techworks/social/internal/store"
 )
@@ -233,8 +234,8 @@ func generateUsers(num int) []*store.User {
 
 	for i := range num {
 		users[i] = &store.User{
-			Username: userNames[i%len(userNames)],
-			Email:    userNames[i%len(userNames)] + string(rune('0'+i%10)) + "@example.com",
+			Username: userNames[i%len(userNames)] + strconv.Itoa(i),
+			Email:    userNames[i%len(userNames)] + "." + strconv.Itoa(i) + "@example.com",
 			Password: "123123",
 		}
 	}
