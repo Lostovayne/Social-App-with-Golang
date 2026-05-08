@@ -41,6 +41,27 @@ func (s *UserStorage) Create(ctx context.Context, user *User) error {
 }
 
 
-func (s *UserStorage) GetByID(ctx context.Context, id int64) (*User, error) {
+func (s *UserStorage) GetByID(ctx context.Context, userID int64) (*User, error) {
+	query := `SELECT id, username, email, created_at FROM users WHERE id = $1`
 
+	ctx, cancel := context.WithTimeout(ctx, QueryTomeoutDuration)
+	defer cancel()
+
+	user := &User{}
+	err := s.db.QueryRowContext(
+		ctx,
+		query,
+		userID,
+	).Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt)
+
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return user, nil
 }
