@@ -40,7 +40,6 @@ func (s *UserStorage) Create(ctx context.Context, user *User) error {
 
 }
 
-
 func (s *UserStorage) GetByID(ctx context.Context, userID int64) (*User, error) {
 	query := `SELECT id, username, email, created_at FROM users WHERE id = $1`
 

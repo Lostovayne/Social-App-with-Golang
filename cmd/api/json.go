@@ -19,11 +19,11 @@ func writeJson(w http.ResponseWriter, status int, data any) error {
 	return json.NewEncoder(w).Encode(data)
 }
 
+// readJson Lee el cuerpo de la solicitud y lo decodifica en el objeto data.
+// Block Atacks - Limita el tamaño del cuerpo de la solicitud a 1MB
 func readJson(w http.ResponseWriter, r *http.Request, data any) error {
-	// Block Atacks
 	maxBytes := 1_048_576 // 1MB
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
-
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	return decoder.Decode(data)
