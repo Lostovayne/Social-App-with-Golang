@@ -37,7 +37,12 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 
 	ctx := r.Context()
 	if err := app.store.Followers.Follow(ctx, int64(followerUser.ID), payload.UserID); err != nil {
-		app.internalServerError(w, r, err)
+		switch err {
+		case store.ErrAlreadyExists:
+			app.conflictResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
 		return
 	}
 

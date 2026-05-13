@@ -19,3 +19,8 @@ func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request,
 	log.Printf("Not found error: %s path: %s error: %s", r.Method, r.URL.Path, err)
 	writeJsonError(w, http.StatusNotFound, "The requested resource was not found")
 }
+
+func (app *application) conflictResponse(w http.ResponseWriter, r *http.Request, err error) {
+	log.Printf("Conflict error: %s path: %s error: %s", r.Method, r.URL.Path, err)
+	writeJsonError(w, http.StatusConflict, "The resource already exists")
+}

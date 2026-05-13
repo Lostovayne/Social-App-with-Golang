@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	ErrNotFound          = errors.New("resource not found")
+	ErrNotFound          = errors.New("Resource not found")
+	ErrAlreadyExists     = errors.New("Resource already exists")
 	QueryTomeoutDuration = time.Second * 5
 )
 
@@ -38,9 +39,9 @@ type Storage struct {
 
 func NewStorage(db *sql.DB) Storage {
 	return Storage{
-		Posts:     &PostsStorage{db: db},
-		Users:     &UserStorage{db: db},
-		Comments:  &CommentStore{db: db},
-		Followers: &FollowersStorage{db: db},
+		Posts:     &PostsStorage{db},
+		Users:     &UserStorage{db},
+		Comments:  &CommentStore{db},
+		Followers: &FollowersStorage{db},
 	}
 }

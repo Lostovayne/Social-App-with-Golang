@@ -3,6 +3,8 @@ package store
 import (
 	"context"
 	"database/sql"
+
+	"github.com/lib/pq"
 )
 
 type Follower struct {
@@ -22,7 +24,14 @@ func (s *FollowersStorage) Follow(ctx context.Context, followerID, userID int64)
 	defer cancel()
 
 	_, err := s.db.ExecContext(ctx, query, userID, followerID)
-	return err
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			return ErrAlreadyExists
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (s *FollowersStorage) Unfollow(ctx context.Context, followerID, userID int64) error {
