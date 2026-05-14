@@ -15,7 +15,6 @@ const userCtx userKey = "user"
 
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
-
 	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
 		app.internalServerError(w, r, err)
 	}
@@ -61,7 +60,7 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := app.store.Followers.Unfollow(r.Context(), int64(unfollowedUser.ID),payload.UserID); err != nil {
+	if err := app.store.Followers.Unfollow(r.Context(), int64(unfollowedUser.ID), payload.UserID); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

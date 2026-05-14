@@ -18,11 +18,23 @@ type Post struct {
 	UpdatedAt string    `json:"updated_at"`
 	Version   int64     `json:"version"`
 	Comments  []Comment `json:"comments"`
+	User      User      `json:"user"`
+}
+
+
+type PostWithMetadata struct {
+	Post
+	CommentsCount int64 `json:"comments_count"`
 }
 
 type PostsStorage struct {
 	db *sql.DB
 }
+
+func (s *PostsStorage) GetUserFeed(ctx context.Context, userId int64) ([]*PostWithMetadata, error) {
+	query :=``
+}
+
 
 func (s *PostsStorage) Create(ctx context.Context, post *Post) error {
 	query := `INSERT INTO posts (content,title,user_id,tags)

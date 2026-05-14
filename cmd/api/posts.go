@@ -42,7 +42,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		Title:   payload.Title,
 		Content: payload.Content,
 		Tags:    payload.Tags,
-		UserId:  1, // This should be obtained from the authenticated user
+		UserId:  1, // This should be obtained from the authenticated user :D
 	}
 
 	ctx := r.Context()
