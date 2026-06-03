@@ -107,10 +107,9 @@ func (app *application) mount() *chi.Mux {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 
+	r.Use(middleware.Recoverer)
 	// Middleware con colores para los logs
 	r.Use(coloredLoggerMiddleware)
-
-	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Route("/v1", func(r chi.Router) {

@@ -247,7 +247,7 @@ func generatePosts(num int, users []*store.User) []*store.Post {
 
 	for i := range num {
 		posts[i] = &store.Post{
-			UserId:  int64(users[i%len(users)].ID),
+			UserId:  users[i%len(users)].ID,
 			Title:   postTitles[i],
 			Content: postContents[i],
 			Tags:    postTags[i],
@@ -262,7 +262,7 @@ func generateComments(num int, posts []*store.Post, users []*store.User) []*stor
 	for i := range num {
 		comments = append(comments, &store.Comment{
 			PostID:  posts[i%len(posts)].ID,
-			UserID:  int64(users[(i+3)%len(users)].ID),
+			UserID:  users[(i+3)%len(users)].ID,
 			Content: commentTexts[i%len(commentTexts)],
 		})
 	}

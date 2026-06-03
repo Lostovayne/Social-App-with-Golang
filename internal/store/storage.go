@@ -10,7 +10,7 @@ import (
 var (
 	ErrNotFound          = errors.New("Resource not found")
 	ErrAlreadyExists     = errors.New("Resource already exists")
-	QueryTomeoutDuration = time.Second * 5
+	QueryTimeoutDuration = time.Second * 5
 )
 
 type Storage struct {
@@ -19,7 +19,7 @@ type Storage struct {
 		GetByID(context.Context, int64) (*Post, error)
 		Delete(context.Context, int64) error
 		Update(context.Context, *Post) error
-		GetUserFeed(context.Context, int64) ([]*PostWithMetadata, error)
+		GetUserFeed(context.Context, int64) ([]PostWithMetadata, error)
 	}
 
 	Users interface {

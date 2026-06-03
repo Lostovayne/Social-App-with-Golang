@@ -132,6 +132,12 @@
       "skillPath": "skills/golang-project-layout/SKILL.md",
       "computedHash": "544cbea84a766c9f29e50634d004741e5665d69a9beae6ea3cb79ed56adea05c"
     },
+    "golang-safety": {
+      "source": "samber/cc-skills-golang",
+      "sourceType": "github",
+      "skillPath": "skills/golang-safety/SKILL.md",
+      "computedHash": "dc54b4e717130dfe632f8996d8a72b8946fa966e3711f12a49b3d6573d6df466"
+    },
     "golang-security": {
       "source": "samber/cc-skills-golang",
       "sourceType": "github",

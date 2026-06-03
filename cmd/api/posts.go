@@ -162,6 +162,9 @@ func (app *application) postsContextMiddleware(next http.Handler) http.Handler {
 }
 
 func getPostFromCtx(r *http.Request) *store.Post {
-	post, _ := r.Context().Value(postCtx).(*store.Post)
+	post, ok := r.Context().Value(postCtx).(*store.Post)
+	if !ok {
+		return nil
+	}
 	return post
 }

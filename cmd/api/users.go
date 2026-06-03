@@ -35,7 +35,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	ctx := r.Context()
-	if err := app.store.Followers.Follow(ctx, int64(followerUser.ID), payload.UserID); err != nil {
+	if err := app.store.Followers.Follow(ctx, followerUser.ID, payload.UserID); err != nil {
 		switch err {
 		case store.ErrAlreadyExists:
 			app.conflictResponse(w, r, err)
@@ -60,7 +60,7 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := app.store.Followers.Unfollow(r.Context(), int64(unfollowedUser.ID), payload.UserID); err != nil {
+	if err := app.store.Followers.Unfollow(r.Context(), unfollowedUser.ID, payload.UserID); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
@@ -97,7 +97,9 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 }
 
 func getUserFromContext(r *http.Request) *store.User {
-	ctx := r.Context()
-	user, _ := ctx.Value(userCtx).(*store.User)
+	user, ok := r.Context().Value(userCtx).(*store.User)
+	if !ok {
+		return nil
+	}
 	return user
 }

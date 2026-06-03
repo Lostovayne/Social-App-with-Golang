@@ -3,10 +3,11 @@ package store
 import (
 	"context"
 	"database/sql"
+	"fmt"
 )
 
 type User struct {
-	ID        int    `json:"id"`
+	ID        int64  `json:"id"`
 	Username  string `json:"username"`
 	Email     string `json:"email"`
 	Password  string `json:"-"`
@@ -21,7 +22,7 @@ func (s *UserStorage) Create(ctx context.Context, user *User) error {
 
 	query := `INSERT INTO users (username, password,email) VALUES ($1, $2, $3) RETURNING id, created_at`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTomeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
 	err := s.db.QueryRowContext(
@@ -33,7 +34,7 @@ func (s *UserStorage) Create(ctx context.Context, user *User) error {
 	).Scan(&user.ID, &user.CreatedAt)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("creating user: %w", err)
 	}
 
 	return nil
@@ -43,7 +44,7 @@ func (s *UserStorage) Create(ctx context.Context, user *User) error {
 func (s *UserStorage) GetByID(ctx context.Context, userID int64) (*User, error) {
 	query := `SELECT id, username, email, created_at FROM users WHERE id = $1`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTomeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
 	user := &User{}
@@ -58,7 +59,7 @@ func (s *UserStorage) GetByID(ctx context.Context, userID int64) (*User, error) 
 		case sql.ErrNoRows:
 			return nil, ErrNotFound
 		default:
-			return nil, err
+			return nil, fmt.Errorf("getting user by id %d: %w", userID, err)
 		}
 	}
 

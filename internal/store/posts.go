@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/lib/pq"
 )
@@ -31,8 +32,53 @@ type PostsStorage struct {
 	db *sql.DB
 }
 
-func (s *PostsStorage) GetUserFeed(ctx context.Context, userId int64) ([]*PostWithMetadata, error) {
-	query :=``
+func (s *PostsStorage) GetUserFeed(ctx context.Context, userID int64) ([]PostWithMetadata, error) {
+	query := `SELECT
+	   p.id, p.user_id, p.title, p.content, p.created_at, p.updated_at, p.version, p.tags,
+	   u.username,
+	   COUNT(c.id) AS comments_count
+	 FROM posts p
+   LEFT JOIN comments c ON c.post_id = p.id
+   LEFT JOIN users u ON u.id = p.user_id
+   JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
+   WHERE f.user_id = $1 OR p.user_id = $1
+   GROUP BY p.id, u.username
+   ORDER BY p.created_at DESC
+		`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("querying posts: %w", err)
+	}
+	defer rows.Close()
+
+	var feed []PostWithMetadata
+	for rows.Next() {
+		var post PostWithMetadata
+		if err := rows.Scan(
+			&post.ID,
+			&post.UserId,
+			&post.Title,
+			&post.Content,
+			&post.CreatedAt,
+			&post.UpdatedAt,
+			&post.Version,
+			pq.Array(&post.Tags),
+			&post.User.Username,
+			&post.CommentsCount,
+		); err != nil {
+			return nil, fmt.Errorf("scanning post: %w", err)
+		}
+		feed = append(feed, post)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return feed, nil
 }
 
 
@@ -40,7 +86,7 @@ func (s *PostsStorage) Create(ctx context.Context, post *Post) error {
 	query := `INSERT INTO posts (content,title,user_id,tags)
 	          VALUES($1,$2,$3,$4) RETURNING id, created_at, updated_at`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTomeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
 	err := s.db.QueryRowContext(
@@ -57,7 +103,7 @@ func (s *PostsStorage) Create(ctx context.Context, post *Post) error {
 	)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("creating post: %w", err)
 	}
 
 	return nil
@@ -69,7 +115,7 @@ func (s *PostsStorage) GetByID(ctx context.Context, id int64) (*Post, error) {
 
 	var post Post
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTomeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
 	err := s.db.QueryRowContext(ctx, query, id).Scan(
@@ -87,7 +133,7 @@ func (s *PostsStorage) GetByID(ctx context.Context, id int64) (*Post, error) {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, ErrNotFound
 		default:
-			return nil, err
+			return nil, fmt.Errorf("getting post by id %d: %w", id, err)
 		}
 	}
 
@@ -98,18 +144,18 @@ func (s *PostsStorage) GetByID(ctx context.Context, id int64) (*Post, error) {
 func (s *PostsStorage) Delete(ctx context.Context, postID int64) error {
 	query := `DELETE FROM posts WHERE id = $1`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTomeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
 	res, err := s.db.ExecContext(ctx, query, postID)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("deleting post %d: %w", postID, err)
 	}
 
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return fmt.Errorf("checking rows affected for post %d: %w", postID, err)
 	}
 
 	if rowsAffected == 0 {
@@ -127,7 +173,7 @@ func (s *PostsStorage) Update(ctx context.Context, post *Post) error {
 		RETURNING version
 	`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTomeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
 	err := s.db.QueryRowContext(
@@ -143,7 +189,7 @@ func (s *PostsStorage) Update(ctx context.Context, post *Post) error {
 		case errors.Is(err, sql.ErrNoRows):
 			return ErrNotFound
 		default:
-			return err
+			return fmt.Errorf("updating post %d: %w", post.ID, err)
 		}
 	}
 

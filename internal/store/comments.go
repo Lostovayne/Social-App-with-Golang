@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"fmt"
 )
 
 type Comment struct {
@@ -21,12 +22,12 @@ type CommentStore struct {
 func (s *CommentStore) Create(ctx context.Context, comment *Comment) error {
 	query := `INSERT INTO comments (post_id, user_id, content) VALUES ($1, $2, $3) RETURNING id, created_at`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTomeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
 	err := s.db.QueryRowContext(ctx, query, comment.PostID, comment.UserID, comment.Content).Scan(&comment.ID, &comment.CreatedAt)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating comment: %w", err)
 	}
 
 	return nil
@@ -36,12 +37,12 @@ func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment
 
 	query := `SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, users.username, users.id, users.email FROM comments c JOIN users on users.id = c.user_id WHERE c.post_id = $1 ORDER BY c.created_at DESC`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTomeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
 	rows, err := s.db.QueryContext(ctx, query, postID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("querying comments for post %d: %w", postID, err)
 	}
 
 	defer rows.Close()
@@ -60,7 +61,7 @@ func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment
 			&c.User.Email)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("scanning comment: %w", err)
 		}
 		comments = append(comments, c)
 	}
