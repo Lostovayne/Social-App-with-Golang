@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/Elevate-Techworks/social/internal/store"
 )
@@ -200,7 +201,8 @@ var commentTexts = []string{
 }
 
 func Seed(s store.Storage) error {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	users := generateUsers(100)
 	for _, u := range users {
 		if err := s.Users.Create(ctx, u); err != nil {
@@ -236,7 +238,7 @@ func generateUsers(num int) []*store.User {
 		users[i] = &store.User{
 			Username: userNames[i%len(userNames)] + strconv.Itoa(i),
 			Email:    userNames[i%len(userNames)] + "." + strconv.Itoa(i) + "@example.com",
-			Password: "123123",
+			Password: "123123", // NOTE: plaintext password — dev/seeding only, never use in production
 		}
 	}
 	return users
@@ -247,7 +249,7 @@ func generatePosts(num int, users []*store.User) []*store.Post {
 
 	for i := range num {
 		posts[i] = &store.Post{
-			UserId:  users[i%len(users)].ID,
+			UserID:  users[i%len(users)].ID,
 			Title:   postTitles[i],
 			Content: postContents[i],
 			Tags:    postTags[i],

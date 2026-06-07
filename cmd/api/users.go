@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -36,10 +37,9 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 
 	ctx := r.Context()
 	if err := app.store.Followers.Follow(ctx, followerUser.ID, payload.UserID); err != nil {
-		switch err {
-		case store.ErrAlreadyExists:
-			app.conflictResponse(w, r, err)
-		default:
+		if errors.Is(err, store.ErrAlreadyExists) {
+			app.conflictResponse(w, r)
+		} else {
 			app.internalServerError(w, r, err)
 		}
 		return
@@ -74,17 +74,16 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, "invalid user ID", http.StatusBadRequest)
 			return
 		}
 
 		ctx := r.Context()
 		user, err := app.store.Users.GetByID(ctx, userID)
 		if err != nil {
-			switch err {
-			case store.ErrNotFound:
-				app.notFoundResponse(w, r, err)
-			default:
+			if errors.Is(err, store.ErrNotFound) {
+				app.notFoundResponse(w, r)
+			} else {
 				app.internalServerError(w, r, err)
 				return
 			}

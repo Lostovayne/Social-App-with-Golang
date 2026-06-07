@@ -1,3 +1,5 @@
+// NOTE: This seed binary duplicates functionality with cmd/seed/main.go.
+// Consider consolidating into a single seed entry point.
 package main
 
 import (
@@ -13,7 +15,7 @@ func main() {
 
 	conn, err := db.New(addr, 3, 3, "15m")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("connecting to database: %v", err)
 	}
 
 	defer conn.Close()
@@ -22,6 +24,6 @@ func main() {
 
 	err = db.Seed(store)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("seeding database: %v", err)
 	}
 }

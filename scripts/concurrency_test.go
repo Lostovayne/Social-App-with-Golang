@@ -1,9 +1,8 @@
 // ConcurrencyTest tests the concurrency of the application.
 package main
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestConcurrency(t *testing.T) {
+	// TODO: Implement concurrency tests
 }

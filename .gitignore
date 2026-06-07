@@ -1,2 +1,9 @@
 .env
 tmp
+bin/
+.envrc
+.idea/
+.vscode/
+*.exe
+*.test
+*.out

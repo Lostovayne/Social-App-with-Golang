@@ -21,7 +21,7 @@ type FollowersStorage struct {
 func (s *FollowersStorage) Follow(ctx context.Context, followerID, userID int64) error {
 	query := "INSERT INTO followers (user_id, follower_id) VALUES ($1, $2)"
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
 	_, err := s.db.ExecContext(ctx, query, userID, followerID)
@@ -38,7 +38,7 @@ func (s *FollowersStorage) Follow(ctx context.Context, followerID, userID int64)
 func (s *FollowersStorage) Unfollow(ctx context.Context, followerID, userID int64) error {
 	query := "DELETE FROM followers WHERE user_id = $1 AND follower_id = $2"
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
 	res, err := s.db.ExecContext(ctx, query, userID, followerID)

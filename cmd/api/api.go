@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/Elevate-Techworks/social/internal/store"
@@ -31,6 +35,16 @@ type dbConfig struct {
 	maxIdleTime  string
 }
 
+func newApplication(cfg config) (*application, error) {
+	if cfg.db.addr == "" {
+		return nil, fmt.Errorf("database address is required")
+	}
+	if cfg.addr == "" {
+		cfg.addr = ":8080"
+	}
+	return &application{config: cfg}, nil
+}
+
 // 1. Creamos nuestro middleware personalizado
 func coloredLoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +56,6 @@ func coloredLoggerMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(ww, r)
 		// Calculamos la latencia
 		latency := time.Since(start)
-		color.NoColor = false
 
 		// Definimos los colores
 		cyan := color.New(color.FgCyan).SprintFunc()
@@ -108,6 +121,7 @@ func (app *application) mount() *chi.Mux {
 	r.Use(middleware.RealIP)
 
 	r.Use(middleware.Recoverer)
+	// TODO: Add CORS middleware for cross-origin requests (e.g., cors.Handler from chi or rs/cors)
 	// Middleware con colores para los logs
 	r.Use(coloredLoggerMiddleware)
 	r.Use(middleware.Timeout(60 * time.Second))
@@ -130,6 +144,8 @@ func (app *application) mount() *chi.Mux {
 				r.Use(app.userContextMiddleware)
 
 				r.Get("/", app.getUserHandler)
+				// NOTE: PUT for follow/unfollow is non-standard REST. Consider POST /follow and DELETE /follow
+				// for proper REST semantics (POST = create relationship, DELETE = remove relationship).
 				r.Put("follow", app.followUserHandler)
 				r.Put("unfollow", app.unfollowUserHandler)
 			})
@@ -147,13 +163,37 @@ func (app *application) mount() *chi.Mux {
 func (app *application) run(mux *chi.Mux) error {
 
 	srv := &http.Server{
-		Addr:         app.config.addr,
-		Handler:      mux,
-		WriteTimeout: time.Second * 30,
-		ReadTimeout:  time.Second * 10,
-		IdleTimeout:  time.Minute,
+		Addr:              app.config.addr,
+		Handler:           mux,
+		WriteTimeout:      time.Second * 30,
+		ReadTimeout:       time.Second * 10,
+		ReadHeaderTimeout: 10 * time.Second,
+		IdleTimeout:       time.Minute,
 	}
 
 	log.Printf("Server has started %s", app.config.addr)
-	return srv.ListenAndServe()
+
+	// Graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- srv.ListenAndServe()
+	}()
+
+	select {
+	case err := <-errCh:
+		return fmt.Errorf("server error: %w", err)
+	case sig := <-quit:
+		log.Printf("Received signal %v, shutting down gracefully...", sig)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			return fmt.Errorf("server shutdown: %w", err)
+		}
+		log.Println("Server stopped")
+	}
+
+	return nil
 }

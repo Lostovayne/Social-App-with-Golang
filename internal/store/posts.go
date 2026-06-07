@@ -13,7 +13,7 @@ type Post struct {
 	ID        int64     `json:"id"`
 	Content   string    `json:"content"`
 	Title     string    `json:"title"`
-	UserId    int64     `json:"user_id"`
+	UserID    int64     `json:"user_id"`
 	Tags      []string  `json:"tags"`
 	CreatedAt string    `json:"created_at"`
 	UpdatedAt string    `json:"updated_at"`
@@ -46,7 +46,7 @@ func (s *PostsStorage) GetUserFeed(ctx context.Context, userID int64) ([]PostWit
    ORDER BY p.created_at DESC
 		`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
 	rows, err := s.db.QueryContext(ctx, query, userID)
@@ -55,12 +55,12 @@ func (s *PostsStorage) GetUserFeed(ctx context.Context, userID int64) ([]PostWit
 	}
 	defer rows.Close()
 
-	var feed []PostWithMetadata
+	feed := make([]PostWithMetadata, 0)
 	for rows.Next() {
 		var post PostWithMetadata
 		if err := rows.Scan(
 			&post.ID,
-			&post.UserId,
+			&post.UserID,
 			&post.Title,
 			&post.Content,
 			&post.CreatedAt,
@@ -86,7 +86,7 @@ func (s *PostsStorage) Create(ctx context.Context, post *Post) error {
 	query := `INSERT INTO posts (content,title,user_id,tags)
 	          VALUES($1,$2,$3,$4) RETURNING id, created_at, updated_at`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
 	err := s.db.QueryRowContext(
@@ -94,7 +94,7 @@ func (s *PostsStorage) Create(ctx context.Context, post *Post) error {
 		query,
 		post.Content,
 		post.Title,
-		post.UserId,
+		post.UserID,
 		pq.Array(post.Tags),
 	).Scan(
 		&post.ID,
@@ -115,14 +115,14 @@ func (s *PostsStorage) GetByID(ctx context.Context, id int64) (*Post, error) {
 
 	var post Post
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
 	err := s.db.QueryRowContext(ctx, query, id).Scan(
 		&post.ID,
 		&post.Content,
 		&post.Title,
-		&post.UserId,
+		&post.UserID,
 		pq.Array(&post.Tags),
 		&post.CreatedAt,
 		&post.UpdatedAt,
@@ -144,7 +144,7 @@ func (s *PostsStorage) GetByID(ctx context.Context, id int64) (*Post, error) {
 func (s *PostsStorage) Delete(ctx context.Context, postID int64) error {
 	query := `DELETE FROM posts WHERE id = $1`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
 	res, err := s.db.ExecContext(ctx, query, postID)
@@ -173,7 +173,7 @@ func (s *PostsStorage) Update(ctx context.Context, post *Post) error {
 		RETURNING version
 	`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
 	err := s.db.QueryRowContext(

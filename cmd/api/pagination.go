@@ -9,5 +9,6 @@ type PaginatedFeedQuery struct {
 }
 
 func (fq *PaginatedFeedQuery) Parser(r *http.Request) (PaginatedFeedQuery, error) {
-
+	// TODO: Implement query parameter parsing
+	return *fq, nil
 }

@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+// NOTE: lib/pq is in maintenance mode. Consider migrating to pgx
+// (github.com/jackc/pgx) for better performance and active maintenance.
 func New(addr string, maxOpenConns, maxIdleConns int, maxIdleTime string) (*sql.DB, error) {
 
 	db, err := sql.Open("postgres", addr)
@@ -15,6 +17,7 @@ func New(addr string, maxOpenConns, maxIdleConns int, maxIdleTime string) (*sql.
 
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdleConns)
+	db.SetConnMaxLifetime(5 * time.Minute)
 
 	duration, err := time.ParseDuration(maxIdleTime)
 	if err != nil {

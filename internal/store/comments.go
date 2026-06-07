@@ -15,14 +15,14 @@ type Comment struct {
 	User      User   `json:"user"`
 }
 
-type CommentStore struct {
+type CommentStorage struct {
 	db *sql.DB
 }
 
-func (s *CommentStore) Create(ctx context.Context, comment *Comment) error {
+func (s *CommentStorage) Create(ctx context.Context, comment *Comment) error {
 	query := `INSERT INTO comments (post_id, user_id, content) VALUES ($1, $2, $3) RETURNING id, created_at`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
 	err := s.db.QueryRowContext(ctx, query, comment.PostID, comment.UserID, comment.Content).Scan(&comment.ID, &comment.CreatedAt)
@@ -33,11 +33,17 @@ func (s *CommentStore) Create(ctx context.Context, comment *Comment) error {
 	return nil
 }
 
-func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment, error) {
+func (s *CommentStorage) GetByPostID(ctx context.Context, postID int64) ([]Comment, error) {
 
-	query := `SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, users.username, users.id, users.email FROM comments c JOIN users on users.id = c.user_id WHERE c.post_id = $1 ORDER BY c.created_at DESC`
+	query := `SELECT
+		c.id, c.post_id, c.user_id, c.content, c.created_at,
+		users.username, users.id, users.email
+	FROM comments c
+	JOIN users on users.id = c.user_id
+	WHERE c.post_id = $1
+	ORDER BY c.created_at DESC`
 
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
 	rows, err := s.db.QueryContext(ctx, query, postID)

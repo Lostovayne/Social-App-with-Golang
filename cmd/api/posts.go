@@ -20,7 +20,7 @@ type CreatePostPayload struct {
 	Tags    []string `json:"tags"`
 }
 
-type UpdatePostHandler struct {
+type UpdatePostPayload struct {
 	Title   *string `json:"title" validate:"omitempty,max=100"`
 	Content *string `json:"content" validate:"omitempty,max=1000"`
 }
@@ -42,7 +42,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		Title:   payload.Title,
 		Content: payload.Content,
 		Tags:    payload.Tags,
-		UserId:  1, // This should be obtained from the authenticated user :D
+		UserID:  1, // This should be obtained from the authenticated user :D
 	}
 
 	ctx := r.Context()
@@ -88,7 +88,7 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 	if err := app.store.Posts.Delete(ctx, postId); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
-			app.notFoundResponse(w, r, err)
+			app.notFoundResponse(w, r)
 		default:
 			app.internalServerError(w, r, err)
 		}
@@ -101,7 +101,7 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
-	var payload UpdatePostHandler
+	var payload UpdatePostPayload
 
 	if err := readJson(w, r, &payload); err != nil {
 		app.badRequestResponse(w, r, err)
@@ -122,7 +122,11 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := app.store.Posts.Update(r.Context(), post); err != nil {
-		app.notFoundResponse(w, r, err)
+		if errors.Is(err, store.ErrNotFound) {
+			app.notFoundResponse(w, r)
+		} else {
+			app.internalServerError(w, r, err)
+		}
 		return
 	}
 
@@ -145,10 +149,9 @@ func (app *application) postsContextMiddleware(next http.Handler) http.Handler {
 		post, err := app.store.Posts.GetByID(ctx, postId)
 
 		if err != nil {
-			switch {
-			case errors.Is(err, store.ErrNotFound):
-				app.notFoundResponse(w, r, err)
-			default:
+			if errors.Is(err, store.ErrNotFound) {
+				app.notFoundResponse(w, r)
+			} else {
 				app.internalServerError(w, r, err)
 			}
 			return
