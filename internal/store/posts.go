@@ -22,7 +22,6 @@ type Post struct {
 	User      User      `json:"user"`
 }
 
-
 type PostWithMetadata struct {
 	Post
 	CommentsCount int64 `json:"comments_count"`
@@ -32,7 +31,7 @@ type PostsStorage struct {
 	db *sql.DB
 }
 
-func (s *PostsStorage) GetUserFeed(ctx context.Context, userID int64) ([]PostWithMetadata, error) {
+func (s *PostsStorage) GetUserFeed(ctx context.Context, userID int64, fq PaginatedFeedQuery) ([]PostWithMetadata, error) {
 	query := `SELECT
 	   p.id, p.user_id, p.title, p.content, p.created_at, p.updated_at, p.version, p.tags,
 	   u.username,
@@ -43,13 +42,14 @@ func (s *PostsStorage) GetUserFeed(ctx context.Context, userID int64) ([]PostWit
    JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
    WHERE f.user_id = $1 OR p.user_id = $1
    GROUP BY p.id, u.username
-   ORDER BY p.created_at DESC
+   ORDER BY p.created_at $2
+	 LIMIT $3 OFFSET $4
 		`
 
 	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userID)
+	rows, err := s.db.QueryContext(ctx, query, userID, fq.Sort, fq.Limit, fq.Offset)
 	if err != nil {
 		return nil, fmt.Errorf("querying posts: %w", err)
 	}
@@ -80,7 +80,6 @@ func (s *PostsStorage) GetUserFeed(ctx context.Context, userID int64) ([]PostWit
 
 	return feed, nil
 }
-
 
 func (s *PostsStorage) Create(ctx context.Context, post *Post) error {
 	query := `INSERT INTO posts (content,title,user_id,tags)
