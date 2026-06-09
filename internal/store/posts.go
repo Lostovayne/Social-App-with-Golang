@@ -42,14 +42,14 @@ func (s *PostsStorage) GetUserFeed(ctx context.Context, userID int64, fq Paginat
    JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
    WHERE f.user_id = $1 OR p.user_id = $1
    GROUP BY p.id, u.username
-   ORDER BY p.created_at $2
-	 LIMIT $3 OFFSET $4
+	 ORDER BY p.created_at ` + fq.sortDirection() + `
+	 LIMIT $2 OFFSET $3
 		`
 
 	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userID, fq.Sort, fq.Limit, fq.Offset)
+	rows, err := s.db.QueryContext(ctx, query, userID, fq.Limit, fq.Offset)
 	if err != nil {
 		return nil, fmt.Errorf("querying posts: %w", err)
 	}

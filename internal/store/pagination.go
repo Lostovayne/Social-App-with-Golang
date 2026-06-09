@@ -40,3 +40,15 @@ func (fq PaginatedFeedQuery) Parser(r *http.Request) (PaginatedFeedQuery, error)
 
 	return fq, nil
 }
+
+// sortDirection returns only "asc" or "desc" — safe for SQL concatenation.
+func (fq PaginatedFeedQuery) sortDirection() string {
+	switch fq.Sort {
+	case "asc":
+		return "asc"
+	case "desc":
+		return "desc"
+	default:
+		return "desc"
+	}
+}
