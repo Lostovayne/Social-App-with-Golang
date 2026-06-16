@@ -33,22 +33,41 @@ The project follows a **layered architecture**:
 
 ## Quick Start
 
+### Prerequisites
+
+Install **just** (task runner) and **migrate** (database migrations) on Windows:
+
+```powershell
+# Install scoop (Windows package manager)
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+
+# Install just and migrate
+scoop install just
+scoop install migrate
+```
+
+### Setup
+
 ```bash
 # Start PostgreSQL
 just db-up
 
-# Run migrations
+# Run migrations (creates all tables)
 just migrate-up
+
+# Seed test data (100 users, 50 posts, 100 comments)
+just db-seed
 
 # Start dev server (with hot reload)
 just dev
 ```
 
-API available at `http://localhost:8081/v1`
+API available at `http://localhost:8080/v1`
 
 ## API Endpoints
 
-Base URL: `http://localhost:8081/v1`
+Base URL: `http://localhost:8080/v1`
 
 ### Health
 | Method | Endpoint | Description |
@@ -115,35 +134,76 @@ All config via environment variables:
 | `DB_MAX_IDLE_TIME` | `15m` | Max idle time |
 | `ENV` | `development` | Environment |
 
+## Database Migrations
+
+This project uses [golang-migrate](https://github.com/golang-migrate/migrate) for schema management. Migrations are versioned SQL files in `cmd/migrate/migrations/`.
+
+### How It Works
+
+```
+cmd/migrate/migrations/
+├── 000001_create_users.up.sql      # Creates users table
+├── 000001_create_users.down.sql    # Drops users table
+├── 000002_posts_create.up.sql      # Creates posts table
+├── 000002_posts_create.down.sql    # Drops posts table
+├── ...
+└── 000008_add_indexes.up.sql       # Adds performance indexes
+```
+
+- **`.up.sql`** — applies the change (CREATE TABLE, ALTER, INSERT)
+- **`.down.sql`** — reverts that exact change (DROP, ALTER back)
+- Numbers (`000001`) define execution order
+- `schema_migrations` table tracks applied versions
+
+### Common Commands
+
+```bash
+just migrate-up           # Apply all pending migrations
+just migrate-down         # Rollback last migration
+just migrate-create name  # Create new migration pair (.up.sql + .down.sql)
+```
+
+### Creating a New Migration
+
+```bash
+just migrate-create add_notifications_table
+```
+
+This creates:
+- `000009_add_notifications_table.up.sql`
+- `000009_add_notifications_table.down.sql`
+
+Edit the files with your SQL, then run `just migrate-up` to apply.
+
 ## Commands
 
 ```bash
 # Development
-just dev          # Hot reload with air
-just run          # Run without hot reload
-just build        # Compile binary
-just clean        # Remove binaries
+just dev              # Hot reload with air
+just run              # Run without hot reload
+just build            # Compile binary
+just clean            # Remove binaries
 
 # Database
-just db-up        # Start PostgreSQL
-just db-down      # Stop PostgreSQL
-just db-logs      # View DB logs
-just db-seed      # Seed test data
+just db-up            # Start PostgreSQL container
+just db-down          # Stop PostgreSQL container
+just db-logs          # View DB logs
+just db-seed          # Seed test data (100 users, 50 posts, 100 comments)
 
 # Migrations
-just migrate-up   # Apply migrations
-just migrate-down # Rollback last migration
-just migrate-create <name>  # New migration
+just migrate-up       # Apply all pending migrations
+just migrate-down     # Rollback last migration
+just migrate-create <name>  # Create new migration pair
 
 # Quality
-just test         # Run tests
-just vet          # Go vet
-just check        # fmt + vet + test
-just fmt-go       # Format Go code
-just fmt-sql      # Format SQL
+just test             # Run tests
+just vet              # Go vet
+just check            # fmt-go + fmt-sql + vet + test
+just fmt-go           # Format Go code
+just fmt-sql          # Format SQL files
 
 # Tools
-just tools        # Install air & goimports
+just tools            # Install air & goimports
 ```
 
 ## Tech Stack
