@@ -17,13 +17,20 @@ dev:
 		@if (-not (Get-Command air -ErrorAction SilentlyContinue)) { echo "air no esta instalado. Ejecuta: go install github.com/air-verse/air@latest"; exit 1 }
 		air -c .air.toml
 
-# [Proyecto] Compila ./cmd/api en ./bin/main
-build:
-		go build -o ./bin/main.exe ./cmd/api
+# [Proyecto] Compila ./cmd/api en ./bin/api.exe
+build-api:
+		go build -o ./bin/api.exe ./cmd/api
+
+# [Proyecto] Compila ./cmd/seed en ./bin/seed.exe
+build-seed:
+		go build -o ./bin/seed.exe ./cmd/seed
+
+# [Proyecto] Compila ambos binarios en ./bin/
+build: build-api build-seed
 
 # [Proyecto] Elimina binarios generados
 clean:
-		Remove-Item -Recurse -Force ./bin/main.exe -ErrorAction SilentlyContinue
+		Remove-Item -Recurse -Force ./bin/api.exe, ./bin/seed.exe, ./bin/main.exe -ErrorAction SilentlyContinue
 
 # [Go] Corre tests
 test:
