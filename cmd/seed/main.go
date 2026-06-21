@@ -19,6 +19,16 @@ func main() {
 
 	log.Println("Database connection pool established")
 
+	// Truncate tables so the seed is idempotent.
+	// Order matters: children before parents.
+	tables := []string{"comments", "followers", "posts", "users"}
+	for _, t := range tables {
+		if _, err := conn.Exec("TRUNCATE TABLE " + t + " RESTART IDENTITY CASCADE"); err != nil {
+			log.Fatalf("Failed to truncate %s: %v", t, err)
+		}
+	}
+	log.Println("Tables truncated")
+
 	storage := store.NewStorage(conn)
 
 	if err := db.Seed(storage); err != nil {

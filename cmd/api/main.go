@@ -40,9 +40,9 @@ func main() {
 
 	store := store.NewStorage(db)
 
-	app := application{
-		config: cfg,
-		store:  store,
+	app, err := newApplication(cfg, store)
+	if err != nil {
+		log.Fatalf("could not create application: %v", err)
 	}
 
 	mux := app.mount()

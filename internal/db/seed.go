@@ -227,6 +227,19 @@ func Seed(s store.Storage) error {
 		}
 	}
 
+	// Create follower relationships so the feed endpoint returns data.
+	// The feed handler hardcodes userID=42, so user 42 must follow users with posts.
+	followers := generateFollowers(users)
+	for _, f := range followers {
+		if err := s.Followers.Follow(ctx, f.FollowerID, f.UserID); err != nil {
+			if err == store.ErrAlreadyExists {
+				continue // skip duplicates — safe for seeding
+			}
+			log.Println("failed to create follower:", err)
+			return err
+		}
+	}
+
 	log.Println("Seed completed successfully")
 	return nil
 }
@@ -269,4 +282,37 @@ func generateComments(num int, posts []*store.Post, users []*store.User) []*stor
 		})
 	}
 	return comments
+}
+
+func generateFollowers(users []*store.User) []*store.Follower {
+	followers := make([]*store.Follower, 0)
+	seen := make(map[[2]int64]bool)
+
+	addFollower := func(followerID, userID int64) {
+		key := [2]int64{followerID, userID}
+		if seen[key] || followerID == userID {
+			return
+		}
+		seen[key] = true
+		followers = append(followers, &store.Follower{
+			UserID:     userID,
+			FollowerID: followerID,
+		})
+	}
+
+	// User at index 42 (the feed handler's hardcoded user) follows
+	// every user that has authored a post — ensures the feed is populated.
+	for i := 0; i < 50; i++ {
+		authorIdx := i % len(users)
+		addFollower(users[42].ID, users[authorIdx].ID)
+	}
+
+	// Additional random follows between other users for realism.
+	for i := 0; i < 100; i++ {
+		followerIdx := i % len(users)
+		followedIdx := (i + 7) % len(users)
+		addFollower(users[followerIdx].ID, users[followedIdx].ID)
+	}
+
+	return followers
 }

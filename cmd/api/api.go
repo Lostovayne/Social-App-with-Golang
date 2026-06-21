@@ -35,14 +35,14 @@ type dbConfig struct {
 	maxIdleTime  string
 }
 
-func newApplication(cfg config) (*application, error) {
+func newApplication(cfg config, store store.Storage) (*application, error) {
 	if cfg.db.addr == "" {
 		return nil, fmt.Errorf("database address is required")
 	}
 	if cfg.addr == "" {
 		cfg.addr = ":8080"
 	}
-	return &application{config: cfg}, nil
+	return &application{config: cfg, store: store}, nil
 }
 
 // 1. Creamos nuestro middleware personalizado
@@ -146,8 +146,8 @@ func (app *application) mount() *chi.Mux {
 				r.Get("/", app.getUserHandler)
 				// NOTE: PUT for follow/unfollow is non-standard REST. Consider POST /follow and DELETE /follow
 				// for proper REST semantics (POST = create relationship, DELETE = remove relationship).
-				r.Put("follow", app.followUserHandler)
-				r.Put("unfollow", app.unfollowUserHandler)
+				r.Put("/follow", app.followUserHandler)
+				r.Put("/unfollow", app.unfollowUserHandler)
 			})
 
 			r.Group(func(r chi.Router) {
