@@ -7,3 +7,17 @@ bin/
 *.exe
 *.test
 *.out
+
+# AI agents & skills (auto-generated, local paths)
+.agents/
+.atl/
+.claude/
+.copilot/
+.cursor/
+.windsurf/
+.opencode/
+.kiro/
+.codex/
+.openclaw/
+.hermes/
+*.skill-registry*

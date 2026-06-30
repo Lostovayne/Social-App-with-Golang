@@ -32,6 +32,10 @@ type PostsStorage struct {
 }
 
 func (s *PostsStorage) GetUserFeed(ctx context.Context, userID int64, fq PaginatedFeedQuery) ([]PostWithMetadata, error) {
+	if fq.Tags == nil {
+		fq.Tags = []string{}
+	}
+
 	query := `SELECT
 	   p.id, p.user_id, p.title, p.content, p.created_at, p.updated_at, p.version, p.tags,
 	   u.username,
@@ -39,8 +43,10 @@ func (s *PostsStorage) GetUserFeed(ctx context.Context, userID int64, fq Paginat
 	 FROM posts p
    LEFT JOIN comments c ON c.post_id = p.id
    LEFT JOIN users u ON u.id = p.user_id
-   JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
-   WHERE f.user_id = $1 OR p.user_id = $1
+   LEFT JOIN followers f ON f.follower_id = $1 AND f.user_id = p.user_id
+   WHERE (p.user_id = $1 OR f.user_id IS NOT NULL)
+     AND (p.title ILIKE '%' || $4 || '%' OR p.content ILIKE '%' || $4 || '%')
+     AND (p.tags @> $5 OR $5 = '{}')
    GROUP BY p.id, u.username
 	 ORDER BY p.created_at ` + fq.sortDirection() + `
 	 LIMIT $2 OFFSET $3
@@ -49,7 +55,7 @@ func (s *PostsStorage) GetUserFeed(ctx context.Context, userID int64, fq Paginat
 	ctx, cancel := context.WithTimeout(ctx, queryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userID, fq.Limit, fq.Offset)
+	rows, err := s.db.QueryContext(ctx, query, userID, fq.Limit, fq.Offset, fq.Search, pq.Array(fq.Tags))
 	if err != nil {
 		return nil, fmt.Errorf("querying posts: %w", err)
 	}
