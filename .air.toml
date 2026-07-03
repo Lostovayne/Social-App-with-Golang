@@ -7,9 +7,9 @@ bin_dir = "bin"
 
 [build]
   args_bin = []
-  bin = "./bin/main.exe"
-  cmd = "go build -o ./bin/main.exe ./cmd/api"
-  entrypoint = ["./bin/main.exe"]
+  bin = "./bin/main"
+  cmd = "go build -o ./bin/main ./cmd/api"
+  entrypoint = ["./bin/main"]
   exclude_dir = ["assets", "bin", "vendor", "testdata","docs","scripts"]
   exclude_file = []
   exclude_regex = ["_test.go"]
