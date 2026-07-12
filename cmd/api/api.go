@@ -11,13 +11,12 @@ import (
 	"syscall"
 	"time"
 
-	// "github.com/Elevate-Techworks/social/docs"
+	"github.com/Elevate-Techworks/social/docs"
 	"github.com/Elevate-Techworks/social/internal/store"
 	"github.com/fatih/color"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
-	"github.com/swaggo/swag/example/basic/docs"
 )
 
 type application struct {
@@ -26,9 +25,10 @@ type application struct {
 }
 
 type config struct {
-	addr string
-	db   dbConfig
-	env  string
+	addr   string
+	db     dbConfig
+	env    string
+	apiURL string
 }
 
 type dbConfig struct {
@@ -166,6 +166,8 @@ func (app *application) mount() *chi.Mux {
 func (app *application) run(mux *chi.Mux) error {
 	//Docs
 	docs.SwaggerInfo.Version = version
+	docs.SwaggerInfo.Host = app.config.apiURL
+	docs.SwaggerInfo.BasePath = "/v1"
 
 	srv := &http.Server{
 		Addr:              app.config.addr,
