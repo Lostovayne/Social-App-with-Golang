@@ -125,7 +125,6 @@ func (app *application) mount() *chi.Mux {
 
 	r.Use(middleware.Recoverer)
 	// TODO: Add CORS middleware for cross-origin requests (e.g., cors.Handler from chi or rs/cors)
-	// Middleware con colores para los logs
 	r.Use(coloredLoggerMiddleware)
 	r.Use(middleware.Timeout(60 * time.Second))
 

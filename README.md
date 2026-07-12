@@ -35,32 +35,46 @@ The project follows a **layered architecture**:
 
 ### Prerequisites
 
-Install **just** (task runner) and **migrate** (database migrations) on Windows:
+Install **make** (task runner), **direnv** (environment variables), and **migrate** (database migrations):
+
+```bash
+# Linux (ejemplo)
+sudo apt install make direnv   # o tu gestor de paquetes
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+```
+
+On Windows (with scoop):
 
 ```powershell
 # Install scoop (Windows package manager)
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
 
-# Install just and migrate
-scoop install just
+# Install make and migrate
+scoop install make
 scoop install migrate
 ```
+
+Hook direnv into your shell — see [direnv docs](https://direnv.net/docs/hook.html).
 
 ### Setup
 
 ```bash
+# Environment variables (direnv)
+cp env.example .envrc
+direnv allow
+
 # Start PostgreSQL
-just db-up
+make db-up
 
 # Run migrations (creates all tables)
-just migrate-up
+make migrate-up
 
 # Seed test data (100 users, 50 posts, 100 comments)
-just db-seed
+make db-seed
 
 # Start dev server (with hot reload)
-just dev
+make dev
 ```
 
 API available at `http://localhost:8080/v1`
@@ -117,11 +131,14 @@ Base URL: `http://localhost:8080/v1`
 │       └── comments.go   # Comments repository
 │
 ├── docker-compose.yml    # PostgreSQL container
-├── justfile              # Task runner
+├── Makefile              # Task runner
+├── env.example           # Template for .envrc (direnv)
 └── endpoints.http        # API test requests
 ```
 
 ## Configuration
+
+Copy `env.example` to `.envrc` and run `direnv allow`. Variables are loaded by [direnv](https://direnv.net/) into your shell; `make` and Go commands inherit them automatically.
 
 All config via environment variables:
 
@@ -158,52 +175,53 @@ cmd/migrate/migrations/
 ### Common Commands
 
 ```bash
-just migrate-up           # Apply all pending migrations
-just migrate-down         # Rollback last migration
-just migrate-create name  # Create new migration pair (.up.sql + .down.sql)
+make migrate-up           # Apply all pending migrations
+make migrate-down         # Rollback last migration
+make migrate-create NAME=name  # Create new migration pair (.up.sql + .down.sql)
 ```
 
 ### Creating a New Migration
 
 ```bash
-just migrate-create add_notifications_table
+make migrate-create NAME=add_notifications_table
 ```
 
 This creates:
 - `000009_add_notifications_table.up.sql`
 - `000009_add_notifications_table.down.sql`
 
-Edit the files with your SQL, then run `just migrate-up` to apply.
+Edit the files with your SQL, then run `make migrate-up` to apply.
 
 ## Commands
 
 ```bash
 # Development
-just dev              # Hot reload with air
-just run              # Run without hot reload
-just build            # Compile binary
-just clean            # Remove binaries
+make dev              # Hot reload with air
+make run              # Run without hot reload
+make build            # Compile binary
+make clean            # Remove binaries
 
 # Database
-just db-up            # Start PostgreSQL container
-just db-down          # Stop PostgreSQL container
-just db-logs          # View DB logs
-just db-seed          # Seed test data (100 users, 50 posts, 100 comments)
+make db-up            # Start PostgreSQL container
+make db-down          # Stop PostgreSQL container
+make db-logs          # View DB logs
+make db-seed          # Seed test data (100 users, 50 posts, 100 comments)
 
 # Migrations
-just migrate-up       # Apply all pending migrations
-just migrate-down     # Rollback last migration
-just migrate-create <name>  # Create new migration pair
+make migrate-up       # Apply all pending migrations
+make migrate-down     # Rollback last migration
+make migrate-create NAME=<name>  # Create new migration pair
 
 # Quality
-just test             # Run tests
-just vet              # Go vet
-just check            # fmt-go + fmt-sql + vet + test
-just fmt-go           # Format Go code
-just fmt-sql          # Format SQL files
+make test             # Run tests
+make vet              # Go vet
+make check            # fmt-go + fmt-sql + vet + test
+make fmt-go           # Format Go code
+make fmt-sql          # Format SQL files
 
 # Tools
-just tools            # Install air & goimports
+make tools            # Install air & goimports
+make help             # List all commands
 ```
 
 ## Tech Stack
@@ -215,7 +233,7 @@ just tools            # Install air & goimports
 | Database | PostgreSQL 17 |
 | Migration | golang-migrate |
 | Validator | go-playground/validator |
-| Dev tools | air, just, Docker |
+| Dev tools | air, make, direnv, Docker |
 
 ## License
 
