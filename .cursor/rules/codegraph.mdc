@@ -1,0 +1,37 @@
+---
+description: Explorar código con Codegraph antes de leer o editar
+alwaysApply: true
+---
+
+# Codegraph — contexto antes de editar
+
+MCP conectado en `~/.cursor/mcp.json`. **Explorar primero, editar después.**
+
+## Cuándo usar `codegraph_explore` (PRIORIDAD)
+
+- Preguntas de arquitectura o flujo ("¿cómo funciona X?", "¿dónde se usa Y?")
+- Antes de modificar handlers, store, migrations o rutas
+- Bug en un flujo que cruza varios archivos
+- Refactors o cambios con impacto desconocido
+
+## Cuándo NO hace falta
+
+- Cambio trivial en un archivo ya abierto y entendido
+- Búsqueda de un string literal → `Grep`
+- Leer un path concreto que el usuario dio → `Read`
+
+## Flujo recomendado
+
+1. `codegraph_explore` con símbolos o pregunta natural (ej. `getUserHandler store users migrate-up`)
+2. El resultado ya incluye source — **no re-abrir** esos archivos salvo líneas fuera del resultado
+3. Editar con el contexto del grafo (call paths + blast radius)
+
+## Índice del proyecto
+
+- Index en `.codegraph/` — mantener con `codegraph sync` tras cambios grandes
+- Si no hay índice: `codegraph init` en la raíz del repo
+
+## Query efectiva
+
+- Nombrar símbolos del flujo: `followUserHandler followers store`
+- O pregunta corta: `how does user feed pagination work`

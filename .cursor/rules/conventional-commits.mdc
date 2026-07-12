@@ -1,0 +1,56 @@
+---
+description: Ayuda con Conventional Commits cuando el usuario termina de programar
+alwaysApply: true
+---
+
+# Conventional Commits
+
+Solo crear commits cuando el usuario lo pida explícitamente (ej. "haz commit", "commitea", "crea el commit").
+
+## Flujo
+
+1. Revisar el estado: `git status`, `git diff`, `git diff --cached`, `git log --oneline -5`.
+2. Proponer uno o más commits por unidad de trabajo (no por tipo de archivo).
+3. Mostrar al usuario el mensaje propuesto antes de commitear, salvo que pida ejecutarlo directo.
+4. Incluir tests/docs en el mismo commit que el cambio que cubren.
+
+## Formato
+
+```
+<type>(<scope>): <descripción en imperativo, minúsculas, sin punto final>
+
+[cuerpo opcional — el porqué, no el qué]
+
+[footer opcional — BREAKING CHANGE:, Closes #123]
+```
+
+## Types usados en este repo
+
+| Type | Cuándo |
+|------|--------|
+| `feat` | Nueva funcionalidad |
+| `fix` | Corrección de bug |
+| `docs` | Solo documentación |
+| `chore` | Mantenimiento (formato, deps menores) |
+| `build` | Build, Makefile, Docker |
+| `config` | Configuración del proyecto |
+| `refactor` | Refactor sin cambio de comportamiento |
+| `test` | Solo tests (si no van con el feat/fix) |
+| `perf` | Mejora de rendimiento |
+
+## Scope
+
+Usar módulo o área afectada cuando ayude: `posts`, `auth`, `api`, `seed`, `swagger`.
+
+Ejemplos del repo:
+- `fix(posts): correct GetUserFeed query JOIN direction`
+- `feat(auth): add token validation`
+- `docs: add Windows setup guide`
+
+## Reglas
+
+- Imperativo: "add", "fix", "remove" — no "added", "fixes".
+- Un commit = un propósito claro y rollback razonable.
+- Si hay muchos cambios mezclados, proponer dividirlos en varios commits.
+- No commitear secretos (`.env`, credenciales).
+- No hacer push salvo que lo pida explícitamente.

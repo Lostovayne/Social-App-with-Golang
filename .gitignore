@@ -13,7 +13,6 @@ bin/
 .atl/
 .claude/
 .copilot/
-.cursor/
 .windsurf/
 .opencode/
 .kiro/
@@ -21,3 +20,4 @@ bin/
 .openclaw/
 .hermes/
 *.skill-registry*
+.codegraph/
