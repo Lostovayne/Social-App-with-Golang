@@ -1,4 +1,7 @@
-.PHONY: help run dev build-api build-seed build clean test vet check fmt-go fmt-go-imports fmt-sql db-up db-down db-logs db-seed migrate-up migrate-down migrate-create gen-docs kulala tools
+.PHONY: help run dev build-api build-seed build clean test vet check fmt-go fmt-go-imports fmt-sql db-up db-down db-logs db-seed migrate-up migrate-down migrate-create gen-docs kulala kulala-list kulala-one tools
+
+# kulala-cli: https://github.com/mistweaverco/kulala-cli
+KULALA ?= $(shell command -v kulala 2>/dev/null || command -v kulala_cli 2>/dev/null)
 
 # DB_ADDR viene de direnv (.envrc); fallback si no esta cargado
 DB_ADDR ?= postgres://admin:adminpassword@localhost:5432/social?sslmode=disable
@@ -75,8 +78,18 @@ migrate-create: ## [Migraciones] Crear migracion (make migrate-create NAME=nombr
 gen-docs: ## [Docs] Generacion de documentacion Swagger
 	swag init -g ./cmd/api/main.go -d cmd,internal && swag fmt
 
-kulala: ## [Endpoints Http] Corre Kulala Http
-	kulala run endpoints.http
+kulala: ## [Endpoints Http] Ejecuta todos los requests (kulala-cli)
+	@if [ -z "$(KULALA)" ]; then echo "Instala kulala-cli: https://github.com/mistweaverco/kulala-cli"; exit 1; fi
+	$(KULALA) run endpoints.http
+
+kulala-list: ## [Endpoints Http] Lista requests en endpoints.http
+	@if [ -z "$(KULALA)" ]; then echo "Instala kulala-cli: https://github.com/mistweaverco/kulala-cli"; exit 1; fi
+	$(KULALA) run endpoints.http --list
+
+kulala-one: ## [Endpoints Http] Un request (make kulala-one NAME=health)
+	@if [ -z "$(KULALA)" ]; then echo "Instala kulala-cli: https://github.com/mistweaverco/kulala-cli"; exit 1; fi
+	@if [ -z "$(NAME)" ]; then echo "Usage: make kulala-one NAME=health"; exit 1; fi
+	$(KULALA) run endpoints.http --name $(NAME)
 
 tools: ## [Herramientas] Instala air y goimports
 	go install github.com/air-verse/air@latest

@@ -1,4 +1,84 @@
+# GopherSocial API — Kulala CLI (https://github.com/mistweaverco/kulala-cli)
+# Todos:   make kulala
+# Uno:     make kulala-one NAME=health
+# Listar:  make kulala-list
 
-@BASE_URL=http://localhost:8080/v1
+@BASE_URL = http://localhost:8080/v1
+@HOST = localhost:8080
 
-GET {{BASE_URL}}/health   HTTP/1.1
+# IDs de ejemplo (ajusta tras seed: make db-seed)
+@POST_ID = 1
+@USER_ID = 1
+@FOLLOW_USER_ID = 2
+
+### health
+GET {{BASE_URL}}/health
+Accept: application/json
+
+### swagger
+GET {{BASE_URL}}/swagger/index.html
+Accept: text/html
+
+### getPost
+GET {{BASE_URL}}/posts/{{POST_ID}}
+Accept: application/json
+
+### createPost
+POST {{BASE_URL}}/posts
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Hello from Kulala",
+  "content": "Testing the social API with a REST client.",
+  "tags": ["go", "kulala", "api"]
+}
+
+### updatePost
+PATCH {{BASE_URL}}/posts/{{POST_ID}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Updated title",
+  "content": "Updated content from Kulala."
+}
+
+### deletePost
+DELETE {{BASE_URL}}/posts/{{POST_ID}}
+Accept: application/json
+
+### getUser
+GET {{BASE_URL}}/users/{{USER_ID}}
+Accept: application/json
+
+### followUser
+PUT {{BASE_URL}}/users/{{USER_ID}}/follow
+Content-Type: application/json
+Accept: application/json
+
+{
+  "user_id": {{FOLLOW_USER_ID}}
+}
+
+### unfollowUser
+PUT {{BASE_URL}}/users/{{USER_ID}}/unfollow
+Content-Type: application/json
+Accept: application/json
+
+{
+  "user_id": {{FOLLOW_USER_ID}}
+}
+
+### userFeed
+GET {{BASE_URL}}/users/feed?limit=10&offset=0&sort=desc
+Accept: application/json
+
+### userFeedFiltered
+GET {{BASE_URL}}/users/feed?limit=5&offset=0&sort=desc&tags=go,api&search=hello
+Accept: application/json
+
+### healthRelative
+GET /v1/health HTTP/1.1
+Host: {{HOST}}
+Accept: application/json

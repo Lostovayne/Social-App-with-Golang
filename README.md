@@ -222,6 +222,11 @@ make fmt-sql          # Format SQL files
 # Tools
 make tools            # Install air & goimports
 make help             # List all commands
+
+# HTTP (kulala-cli)
+make kulala           # Run all requests in endpoints.http
+make kulala-one NAME=health  # Run a single named request
+make kulala-list      # List available requests
 ```
 
 ## Tech Stack
