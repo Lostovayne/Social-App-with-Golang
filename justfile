@@ -86,6 +86,19 @@ migrate-create migration_name:
 		@if ! command -v migrate &> /dev/null; then echo "migrate no esta instalado. Ejecuta: go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest"; exit 1; fi
 		migrate create -seq -ext sql -dir ./cmd/migrate/migrations "{{migration_name}}"
 
+# [Docs] Generacion de Documentacion
+gen-docs:
+	swag init -g ./api/main.go -d cmd,internal && swag fmt
+
+
+# [Endpoints Http] Corre Kulala Http
+kulala:
+	kulala run endpoints.http
+
+# [Tests Endpoints] Corre los tests de endpoints
+#kulala-tests:
+# kulala run --tests --env=production file.http
+
 # [Herramientas] Instala air y goimports
 tools:
 		go install github.com/air-verse/air@latest
