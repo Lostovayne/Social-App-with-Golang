@@ -2,10 +2,10 @@
 
 let
   # ── Database configuration ──────────────────────────────────────────
-  # Credentials live in devenv.local.nix (gitignored)
-  # This file provides structure; local.nix provides secrets
+  # Safe defaults — override in devenv.local.nix (gitignored) for real creds
+  # See devenv.local.nix.example for the expected override structure
   dbUser = "admin";
-  dbPass = "adminpassword";
+  dbPass = "changeme";
   dbName = "social";
   dbHost = "127.0.0.1";
   dbPort = 5433; # devenv offset — avoids conflicts with system postgres
@@ -115,17 +115,17 @@ in
   tasks = {
     # ── Setup ─────────────────────────────────────────────────────────
     "app:setup".exec = ''
-      migrate -path=${migrationsPath} --database="${dbAddr}" up
+      migrate -path=${migrationsPath} --database="$DB_ADDR" up
       go run ./cmd/seed
     '';
 
     # ── Database ──────────────────────────────────────────────────────
     "app:migrate-up".exec = ''
-      migrate -path=${migrationsPath} --database="${dbAddr}" up
+      migrate -path=${migrationsPath} --database="$DB_ADDR" up
     '';
 
     "app:migrate-down".exec = ''
-      migrate -path=${migrationsPath} --database="${dbAddr}" down 1
+      migrate -path=${migrationsPath} --database="$DB_ADDR" down 1
     '';
 
     "app:migrate-new".exec = ''

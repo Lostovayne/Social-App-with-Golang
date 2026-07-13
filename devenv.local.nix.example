@@ -1,0 +1,32 @@
+# ── Local secrets override ──────────────────────────────────────────
+# Copy this file to devenv.local.nix and fill in your real values.
+# devenv.local.nix is gitignored — never commit real credentials.
+#
+# Setup:
+#   1. cp devenv.local.nix.example devenv.local.nix
+#   2. Edit devenv.local.nix with your local database credentials
+#   3. devenv shell  (or just cd into the directory if using direnv)
+#
+# This file overrides ONLY the values that differ from devenv.nix defaults.
+# You can override any config block: env, services.postgres, etc.
+# mkForce is required because devenv merges both files and attrs conflict.
+
+{ pkgs, lib, ... }:
+
+{
+  # Database connection string (overrides devenv.nix DB_ADDR)
+  env = {
+    DB_ADDR = lib.mkForce "postgres://admin:changeme@127.0.0.1:5433/social?sslmode=disable";
+  };
+
+  # Postgres initial database (overrides devenv.nix services.postgres.initialDatabases)
+  services.postgres = {
+    initialDatabases = lib.mkForce [
+      {
+        name = "social";
+        user = "admin";
+        pass = "changeme";
+      }
+    ];
+  };
+}
