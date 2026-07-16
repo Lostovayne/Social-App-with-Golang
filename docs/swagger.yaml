@@ -1,5 +1,106 @@
 basePath: /v1
 definitions:
+  main.CreatePostPayload:
+    properties:
+      content:
+        maxLength: 1000
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 100
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  main.FollowUser:
+    properties:
+      user_id:
+        type: integer
+    type: object
+  main.UpdatePostPayload:
+    properties:
+      content:
+        maxLength: 1000
+        type: string
+      title:
+        maxLength: 100
+        type: string
+    type: object
+  store.Comment:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      post_id:
+        type: integer
+      user:
+        $ref: '#/definitions/store.User'
+      user_id:
+        type: integer
+    type: object
+  store.Post:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/store.Comment'
+        type: array
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/store.User'
+      user_id:
+        type: integer
+      version:
+        type: integer
+    type: object
+  store.PostWithMetadata:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/store.Comment'
+        type: array
+      comments_count:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/store.User'
+      user_id:
+        type: integer
+      version:
+        type: integer
+    type: object
   store.User:
     properties:
       created_at:
@@ -23,15 +124,163 @@ info:
   termsOfService: http://swagger.io/terms/
   title: GopherSocial API
 paths:
-  /users/{id}:
+  /v1/health:
     get:
+      description: Returns the API status, environment, and version
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - system
+  /v1/posts:
+    post:
       consumes:
       - application/json
-      description: Returns the profile of the authenticated user
+      description: Creates a new post
+      parameters:
+      - description: Post payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreatePostPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Post'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Create a post
+      tags:
+      - posts
+  /v1/posts/{postID}:
+    delete:
+      description: Deletes a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: postID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Post deleted successfully
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a post
+      tags:
+      - posts
+    get:
+      description: Returns a post by ID with its comments
+      parameters:
+      - description: Post ID
+        in: path
+        name: postID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Post'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get a post
+      tags:
+      - posts
+    patch:
+      consumes:
+      - application/json
+      description: Updates a post by ID (title and/or content)
+      parameters:
+      - description: Post ID
+        in: path
+        name: postID
+        required: true
+        type: integer
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdatePostPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Post'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Update a post
+      tags:
+      - posts
+  /v1/users/{userID}:
+    get:
+      description: Returns the public profile of a user by their ID
       parameters:
       - description: User ID
         in: path
-        name: id
+        name: userID
         required: true
         type: integer
       produces:
@@ -43,18 +292,156 @@ paths:
             $ref: '#/definitions/store.User'
         "400":
           description: Bad Request
-          schema: {}
+          schema:
+            type: string
         "404":
           description: Not Found
-          schema: {}
+          schema:
+            type: string
         "500":
           description: Internal Server Error
-          schema: {}
+          schema:
+            type: string
       security:
       - ApiKeyAuth: []
-      summary: Fetches a user profile
+      summary: Get user by ID
       tags:
       - users
+  /v1/users/{userID}/follow:
+    put:
+      consumes:
+      - application/json
+      description: Follows the user specified in the request body
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - description: User to follow
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/main.FollowUser'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User followed successfully
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Follow a user
+      tags:
+      - users
+  /v1/users/{userID}/unfollow:
+    put:
+      consumes:
+      - application/json
+      description: Unfollows the user specified in the request body
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - description: User to unfollow
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/main.FollowUser'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User unfollowed successfully
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Unfollow a user
+      tags:
+      - users
+  /v1/users/feed:
+    get:
+      description: Returns the authenticated user's feed with pagination, sorting,
+        and filtering
+      parameters:
+      - default: 20
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      - default: desc
+        description: Sort direction
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sort
+        type: string
+      - description: Comma-separated tags
+        in: query
+        name: tags
+        type: string
+      - description: Search in title and content
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.PostWithMetadata'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get user feed
+      tags:
+      - feed
 securityDefinitions:
   ApiKeyAuth:
     in: header

@@ -4,9 +4,16 @@ import (
 	"net/http"
 )
 
+// healthCheckHandler godoc
+//
+//	@Summary		Health check
+//	@Description	Returns the API status, environment, and version
+//	@Tags			system
+//	@Produce		json
+//	@Success		200	{object}	map[string]string
+//	@Router			/v1/health [get]
 func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 
-	// Data Map
 	data := map[string]string{
 		"status":  "ok",
 		"env":     app.config.env,

@@ -14,20 +14,19 @@ type userKey string
 
 const userCtx userKey = "user"
 
-// GetUser godoc
+// getUserHandler godoc
 //
-//	@Summary		Fetches a user profile
-//	@Description	Returns the profile of the authenticated user
+//	@Summary		Get user by ID
+//	@Description	Returns the public profile of a user by their ID
 //	@Tags			users
-//	@Accept			json
 //	@Produce		json
-//	@Param			id	path		int	true	"User ID"
-//	@Success		200	{object}	store.User
-//	@Failure		400	{object}	error
-//	@Failure		404	{object}	error
-//	@Failure		500	{object}	error
+//	@Param			userID	path		int		true	"User ID"
+//	@Success		200		{object}	store.User
+//	@Failure		400		{object}	string
+//	@Failure		404		{object}	string
+//	@Failure		500		{object}	string
 //	@Security		ApiKeyAuth
-//	@Router			/users/{id} [get]
+//	@Router			/v1/users/{userID} [get]
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
@@ -40,6 +39,22 @@ type FollowUser struct {
 	UserID int64 `json:"user_id"`
 }
 
+// followUserHandler godoc
+//
+//	@Summary		Follow a user
+//	@Description	Follows the user specified in the request body
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path		int				true	"User ID"
+//	@Param			body	body		FollowUser	true	"User to follow"
+//	@Success		204										"User followed successfully"
+//	@Failure		400		{object}	string
+//	@Failure		404		{object}	string
+//	@Failure		409		{object}	string
+//	@Failure		500		{object}	string
+//	@Security		ApiKeyAuth
+//	@Router			/v1/users/{userID}/follow [put]
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
 	followerUser := getUserFromContext(r)
 	// Revert back to auth
@@ -64,6 +79,21 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// unfollowUserHandler godoc
+//
+//	@Summary		Unfollow a user
+//	@Description	Unfollows the user specified in the request body
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			userID	path		int				true	"User ID"
+//	@Param			body	body		FollowUser	true	"User to unfollow"
+//	@Success		204										"User unfollowed successfully"
+//	@Failure		400		{object}	string
+//	@Failure		404		{object}	string
+//	@Failure		500		{object}	string
+//	@Security		ApiKeyAuth
+//	@Router			/v1/users/{userID}/unfollow [put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	unfollowedUser := getUserFromContext(r)
 	// TODO: Revert back to auth
