@@ -222,26 +222,30 @@ in
 
   # ── Shell entry ─────────────────────────────────────────────────────
   enterShell = ''
-    echo ""
-    echo "  \033[36m┌─────────────────────────────────────────────────┐\033[0m"
-    echo "  \033[36m│\033[0m  Social API — devenv                          \033[36m│\033[0m"
-    echo "  \033[36m└─────────────────────────────────────────────────┘\033[0m"
-    echo ""
-    echo "  Go:     $(go version | awk '{print $3}')"
-    echo "  DB:     $DB_ADDR"
-    echo ""
-    echo "  \033[33mQuick start:\033[0m"
-    echo "    devenv up                    Postgres + API (hot reload)"
-    echo "    devenv up postgres           Database only"
-    echo ""
-    echo "  \033[33mTasks:\033[0m"
-    echo "    devenv tasks run app:setup        Migrate + seed"
-    echo "    devenv tasks run app:dev          Hot reload"
-    echo "    devenv tasks run app:test         Run tests"
-    echo "    devenv tasks run app:check        Fmt + vet + tests"
-    echo "    devenv tasks run app:http          Run all endpoints"
-    echo "    devenv tasks list                 All tasks"
-    echo ""
+    # Header
+    printf "\n"
+    printf "  \033[1;36m● Social API\033[0m  \033[2m— devenv\033[0m\n"
+    printf "\n"
+    # Environment
+    printf "  \033[2m─── Environment ─────────────────────────────────\033[0m\n"
+    printf "  Go       \033[1m%s\033[0m\n" "$(go version | awk '{print $3}')"
+    printf "  DB       \033[1m%s\033[0m\n" "$DB_ADDR"
+    printf "\n"
+    # Quick start
+    printf "  \033[2m─── Quick Start ─────────────────────────────────\033[0m\n"
+    printf "  \033[33mdevenv up\033[0m               Postgres + API (hot reload)\n"
+    printf "  \033[33mdevenv up postgres\033[0m      Database only\n"
+    printf "\n"
+    # Tasks
+    printf "  \033[2m─── Tasks ───────────────────────────────────────\033[0m\n"
+    printf "  \033[33mapp:setup\033[0m     devenv tasks run app:setup\n"
+    printf "  \033[33mapp:dev\033[0m       devenv tasks run app:dev\n"
+    printf "  \033[33mapp:test\033[0m      devenv tasks run app:test\n"
+    printf "  \033[33mapp:check\033[0m     devenv tasks run app:check\n"
+    printf "  \033[33mapp:http\033[0m      devenv tasks run app:http\n"
+    printf "\n"
+    printf "  \033[2mRun \033[33mdevenv tasks list\033[2m to see all available tasks.\033[0m\n"
+    printf "\n"
   '';
 
   # ── Tests ───────────────────────────────────────────────────────────
