@@ -4,7 +4,7 @@ go 1.26.1
 
 require (
 	github.com/fatih/color v1.19.0
-	github.com/go-chi/chi/v5 v5.3.2
+	github.com/go-chi/chi/v5 v5.4.0
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/lib/pq v1.12.3
 	github.com/swaggo/http-swagger/v2 v2.0.2
